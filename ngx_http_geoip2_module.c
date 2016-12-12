@@ -225,6 +225,7 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
             //xfwd_ips = xfwd->elts;
             //xfwd_ips[0] = ngx_string("62.81.177.242");
 
+            ngx_str_t *xfwd_ip;
 
             xfwd = &r->headers_in.x_forwarded_for;
             xfwd_ip = ngx_array_push(&xfwd);
