@@ -9,6 +9,8 @@
 #include <ngx_core.h>
 #include <ngx_http.h>
 
+#include <ngx_inet.h>
+
 #include <maxminddb.h>
 
 
