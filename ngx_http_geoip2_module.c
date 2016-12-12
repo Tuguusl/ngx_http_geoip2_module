@@ -207,37 +207,17 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
         addr.sockaddr = r->connection->sockaddr;
         addr.socklen = r->connection->socklen;
 
-        //xfwd = &r->headers_in.x_forwarded_for;
-        if (gcf->first_non_private_ip) {
-//            ngx_str_t *xfwd_ip;
-//
-//            xfwd = ngx_array_create(r->pool, 1, sizeof(ngx_str_t));
-//            xfwd_ip = ngx_array_push(&xfwd);
-//            if (xfwd_ip == NULL) {
-//                return NGX_ERROR;
-//            }
-//
-//            xfwd_ip->data = (u_char *) "62.81.177.242";
-//            xfwd_ip->len = sizeof("62.81.177.242");
+        xfwd = &r->headers_in.x_forwarded_for;
+        if (xfwd->nelts > 0 && gcf->first_non_private_ip) {
+            ngx_uint_t          i;
+            ngx_table_elt_t     **h;
 
+            i = headers->nelts;
+            h = headers->elts;
 
-
-            //xfwd_ips = xfwd->elts;
-            //xfwd_ips[0] = ngx_string("62.81.177.242");
-
-            ngx_str_t *xfwd_ip;
-
-            xfwd = &r->headers_in.x_forwarded_for;
-            xfwd_ip = ngx_array_push(xfwd);
-            if (xfwd_ip == NULL) {
-                return NGX_ERROR;
+            while (i-- > 0) {
             }
 
-            xfwd_ip->data = (u_char *) "62.81.177.242";
-            xfwd_ip->len = sizeof("62.81.177.242");
-
-        } else {
-            xfwd = &r->headers_in.x_forwarded_for;
         }
 
         if (xfwd->nelts > 0 && gcf->proxies != NULL) {
