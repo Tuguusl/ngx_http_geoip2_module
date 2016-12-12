@@ -207,7 +207,10 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
 
         xfwd = &r->headers_in.x_forwarded_for;
         if (gcf->first_non_private_ip == 0) {
-            xfwd = "62.81.177.242";
+            xfwd = &r->headers_in.x_forwarded_for;
+        } else {
+            test_ip = ngx_array_push(xfwd);
+            test_ip->"62.81.177.242";
         }
 
         if (xfwd->nelts > 0 && gcf->proxies != NULL) {
