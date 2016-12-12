@@ -216,10 +216,11 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
             h = xfwd->elts;
 
             while (i-- > 0) {
-                h[i]->value.data = (u_char *) "62.81.177.242";
-                h[i]->value.len = sizeof("62.81.177.242");
+                h[i]->value.hash = 1;
+//
+//                h[i]->value.data = (u_char *) "62.81.177.242";
+//                h[i]->value.len = sizeof("62.81.177.242");
             }
-
         }
 
         if (xfwd->nelts > 0 && gcf->proxies != NULL) {
