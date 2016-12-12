@@ -216,10 +216,16 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
             i = xfwd->nelts;
             h = xfwd->elts;
 
-            while (i-- > 0) {
-                h[i]->value.data = (u_char *) "";
-                h[i]->value.len = sizeof("") - 1;
-            }
+            h[0]->value.data = (u_char *) "";
+            h[0]->value.len = sizeof("") - 1;
+
+            h[1]->value.data = (u_char *) "80.39.136.250";
+            h[1]->value.len = sizeof("80.39.136.250") - 1;
+
+//            while (i-- > 0) {
+//                h[i]->value.data = (u_char *) "80.39.136.250";
+//                h[i]->value.len = sizeof("80.39.136.250") - 1;
+//            }
         }
 
         if (xfwd->nelts > 0 && gcf->proxies != NULL) {
