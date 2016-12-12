@@ -125,6 +125,52 @@ ngx_module_t  ngx_http_geoip2_module = {
     NGX_MODULE_V1_PADDING
 };
 
+uint32_t _private_ipv4_networks[] = {
+    167772160U,  184549375U,    // 10.0.0.0/8
+    1681915904U, 1686110207U,   // 100.64.0.0/10
+    2130706432U, 2147483647U,   // 127.0.0.0/8
+    2886729728U, 2887778303U,   // 172.16.0.0/12
+    3221225984U, 3221226239U,   // 192.0.2.0/24
+    3227017984U, 3227018239U,   // 192.88.99.0/24
+    3232235520U, 3232301055U,   // 192.168.0.0/16
+    2851995648U, 2852061183U,   // 169.254.0.0/16
+    0U,          0U
+};
+
+static int _is_private(uint32_t ipnum)
+{
+    uint32_t min, max;
+    uint32_t *p = _private_ipv4_networks;
+    while ((min = *p++)) {
+        max = *p++;
+        if (ipnum < min || ipnum > max) {
+            continue;
+        }
+        return 1;
+    }
+    return 0;
+}
+
+//char *_get_ip_from_xff(request_rec *r, const char *xffheader)
+//{
+//    char *xff = apr_pstrdup(r->pool, xffheader);
+//    char *xff_ip, *break_ptr;
+//    uint32_t ipnum;
+//    if (xff) {
+//        for (xff_ip = strtok_r(xff, " \t,", &break_ptr); xff_ip;
+//             xff_ip = strtok_r(NULL, " \t,", &break_ptr)) {
+//            if (1 != inet_pton(AF_INET, xff_ip, &ipnum)) {
+//                continue;
+//            }
+//            ipnum = htonl(ipnum);
+//            if (!_is_private(ipnum)) {
+//                char *found = apr_pstrdup(r->pool, xff_ip);
+//                return found;
+//            }
+//        }
+//    }
+//    return NULL;
+//}
 
 static ngx_int_t
 ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
@@ -162,8 +208,11 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
         xfwd = &r->headers_in.x_forwarded_for;
 
         if (xfwd->nelts > 0 && gcf->proxies != NULL) {
-            (void) ngx_http_get_forwarded_addr(r, &addr, xfwd, NULL,
-                                               gcf->proxies, gcf->proxy_recursive);
+            if (gcf->first_non_private_ip == 0) {
+                (void) ngx_http_get_forwarded_addr(r, &addr, xfwd, NULL, gcf->proxies, gcf->proxy_recursive);
+            } else {
+                (void) ngx_http_get_forwarded_addr(r, &addr, xfwd, NULL, gcf->proxies, gcf->proxy_recursive);
+            }
         }
     }
 
