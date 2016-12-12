@@ -295,7 +295,6 @@ ngx_http_geoip2_create_conf(ngx_conf_t *cf)
     }
 
     conf->proxy_recursive = NGX_CONF_UNSET;
-
     conf->first_non_private_ip = NGX_CONF_UNSET;
 
     cln = ngx_pool_cleanup_add(cf->pool, 0);
