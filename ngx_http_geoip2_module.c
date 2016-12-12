@@ -211,16 +211,16 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
         if (gcf->first_non_private_ip == 0) {
             xfwd = &r->headers_in.x_forwarded_for;
         } else {
-            ngx_str_t *xfwd_ips;
+            ngx_str_t *xfwd_ip;
 
             xfwd = ngx_array_create(r->pool, 1, sizeof(ngx_str_t));
-            wsabuf = ngx_array_push(&xfwd);
-            if (wsabuf == NULL) {
+            xfwd_ip = ngx_array_push(&xfwd);
+            if (xfwd_ip == NULL) {
                 return NGX_ERROR;
             }
 
-            wsabuf->data = (u_char *) "62.81.177.242";
-            wsabuf->len = sizeof("62.81.177.242");
+            xfwd_ip->data = (u_char *) "62.81.177.242";
+            xfwd_ip->len = sizeof("62.81.177.242");
 
 
 
