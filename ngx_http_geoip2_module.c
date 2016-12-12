@@ -214,11 +214,11 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
         if (xfwd->nelts > 0 && gcf->first_non_private_ip) {
 
             i = xfwd->nelts;
-            h = xfwd->elts;
+            *h = xfwd->elts;
 
             while (i-- > 0) {
-//                h[i]->value.data = (u_char *) "8.8.8.8";
-//                h[i]->value.len = sizeof("8.8.8.8");
+                *h[i]->value.data = (u_char *) "8.8.8.8";
+                *h[i]->value.len = sizeof("8.8.8.8");
             }
         }
 
