@@ -211,13 +211,11 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
         if (gcf->first_non_private_ip == 0) {
             xfwd = &r->headers_in.x_forwarded_for;
         } else {
-            ngx_pool_t *pool;
-            mstruct_t *sc;
+            ngx_str_t sc;
 
-            xfwd = ngx_array_create(pool, 1, sizeof(mstruct_t));
+            xfwd = ngx_array_create(r->pool, 1, sizeof(ngx_str_t));
             sc = xfwd->elts;
             sc[0] = "62.81.177.242";
-
         }
 
         if (xfwd->nelts > 0 && gcf->proxies != NULL) {
