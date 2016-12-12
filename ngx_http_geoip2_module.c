@@ -199,7 +199,7 @@ ngx_int_t ngx_http_get_forwarded_addr_first_non_private_ip(ngx_http_request_t *r
 }
 
 
-static ngx_int_t ngx_http_get_forwarded_addr_first_non_private_ip_internal(ngx_http_request_t *r, ngx_addr_t *addr,
+ngx_int_t ngx_http_get_forwarded_addr_first_non_private_ip_internal(ngx_http_request_t *r, ngx_addr_t *addr,
     u_char *xff, size_t xfflen, ngx_array_t *proxies, int recursive)
 {
     u_char      *p;
