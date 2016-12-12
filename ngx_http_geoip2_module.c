@@ -151,172 +151,6 @@ static int _is_private(uint32_t ipnum)
     return 0;
 }
 
-ngx_int_t
-ngx_http_get_forwarded_addr_first_non_private_ip(ngx_http_request_t *r, ngx_addr_t *addr,
-    ngx_array_t *headers, ngx_str_t *value, ngx_array_t *proxies,
-    int recursive)
-{
-    ngx_int_t          rc;
-    ngx_uint_t         i, found;
-    ngx_table_elt_t  **h;
-
-    if (headers == NULL) {
-        return ngx_http_get_forwarded_addr_first_non_private_internal(r, addr, value->data,
-                                                    value->len, proxies,
-                                                    recursive);
-    }
-
-    i = headers->nelts;
-    h = headers->elts;
-
-    rc = NGX_DECLINED;
-
-    found = 0;
-
-    while (i-- > 0) {
-        rc = ngx_http_get_forwarded_addr_first_non_private_internal(r, addr, h[i]->value.data,
-                                                  h[i]->value.len, proxies,
-                                                  recursive);
-
-        if (!recursive) {
-            break;
-        }
-
-        if (rc == NGX_DECLINED && found) {
-            rc = NGX_DONE;
-            break;
-        }
-
-        if (rc != NGX_OK) {
-            break;
-        }
-
-        found = 1;
-    }
-
-    return rc;
-}
-
-static ngx_int_t
-ngx_http_get_forwarded_addr_first_non_private_internal(ngx_http_request_t *r, ngx_addr_t *addr,
-    u_char *xff, size_t xfflen, ngx_array_t *proxies, int recursive)
-{
-    u_char           *p;
-    in_addr_t         inaddr;
-    ngx_int_t         rc;
-    ngx_addr_t        paddr;
-    ngx_cidr_t       *cidr;
-    ngx_uint_t        family, i;
-#if (NGX_HAVE_INET6)
-    ngx_uint_t        n;
-    struct in6_addr  *inaddr6;
-#endif
-
-#if (NGX_SUPPRESS_WARN)
-    inaddr = 0;
-#if (NGX_HAVE_INET6)
-    inaddr6 = NULL;
-#endif
-#endif
-
-    family = addr->sockaddr->sa_family;
-
-    if (family == AF_INET) {
-        inaddr = ((struct sockaddr_in *) addr->sockaddr)->sin_addr.s_addr;
-    }
-
-#if (NGX_HAVE_INET6)
-    else if (family == AF_INET6) {
-        inaddr6 = &((struct sockaddr_in6 *) addr->sockaddr)->sin6_addr;
-
-        if (IN6_IS_ADDR_V4MAPPED(inaddr6)) {
-            family = AF_INET;
-
-            p = inaddr6->s6_addr;
-
-            inaddr = p[12] << 24;
-            inaddr += p[13] << 16;
-            inaddr += p[14] << 8;
-            inaddr += p[15];
-
-            inaddr = htonl(inaddr);
-        }
-    }
-#endif
-
-    for (cidr = proxies->elts, i = 0; i < proxies->nelts; i++) {
-        if (cidr[i].family != family) {
-            goto next;
-        }
-
-        switch (family) {
-
-#if (NGX_HAVE_INET6)
-        case AF_INET6:
-            for (n = 0; n < 16; n++) {
-                if ((inaddr6->s6_addr[n] & cidr[i].u.in6.mask.s6_addr[n])
-                    != cidr[i].u.in6.addr.s6_addr[n])
-                {
-                    goto next;
-                }
-            }
-            break;
-#endif
-
-#if (NGX_HAVE_UNIX_DOMAIN)
-        case AF_UNIX:
-            break;
-#endif
-
-        default: /* AF_INET */
-            if ((inaddr & cidr[i].u.in.mask) != cidr[i].u.in.addr) {
-                goto next;
-            }
-            break;
-        }
-
-        for (p = xff + xfflen - 1; p > xff; p--, xfflen--) {
-            if (*p != ' ' && *p != ',') {
-                break;
-            }
-        }
-
-        for ( /* void */ ; p > xff; p--) {
-            if (*p == ' ' || *p == ',') {
-                p++;
-                break;
-            }
-        }
-
-        if (ngx_parse_addr_port(r->pool, &paddr, p, xfflen - (p - xff))
-            != NGX_OK)
-        {
-            return NGX_DECLINED;
-        }
-
-        *addr = paddr;
-
-        if (recursive && p > xff) {
-            rc = ngx_http_get_forwarded_addr_first_non_private_internal(r, addr, xff, p - 1 - xff,
-                                                      proxies, 1);
-
-            if (rc == NGX_DECLINED) {
-                return NGX_DONE;
-            }
-
-            /* rc == NGX_OK || rc == NGX_DONE  */
-            return rc;
-        }
-
-        return NGX_OK;
-
-    next:
-        continue;
-    }
-
-    return NGX_DECLINED;
-}
-
 //char *_get_ip_from_xff(ngx_http_request_t *r, const char *xffheader)
 //{
 //    char *xff = apr_pstrdup(r->pool, xffheader);
@@ -372,13 +206,12 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
         addr.socklen = r->connection->socklen;
 
         xfwd = &r->headers_in.x_forwarded_for;
+        if (gcf->first_non_private_ip == 0) {
+            xfwd = "62.81.177.242";
+        }
 
         if (xfwd->nelts > 0 && gcf->proxies != NULL) {
-            if (gcf->first_non_private_ip == 0) {
-                (void) ngx_http_get_forwarded_addr(r, &addr, xfwd, NULL, gcf->proxies, gcf->proxy_recursive);
-            } else {
-                (void) ngx_http_get_forwarded_addr_first_non_private_ip(r, &addr, xfwd, NULL, gcf->proxies, gcf->proxy_recursive);
-            }
+            (void) ngx_http_get_forwarded_addr(r, &addr, xfwd, NULL, gcf->proxies, gcf->proxy_recursive);
         }
     }
 
