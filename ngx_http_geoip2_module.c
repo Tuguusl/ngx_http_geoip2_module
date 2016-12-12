@@ -153,7 +153,7 @@ static int _is_private(uint32_t ipnum)
     return 0;
 }
 
-static int _ngx_http_get_forwarded_addr_first_non_private_ip(ngx_http_request_t *r, ngx_addr_t *addr,
+static ngx_int_t ngx_http_get_forwarded_addr_first_non_private_ip(ngx_http_request_t *r, ngx_addr_t *addr,
     ngx_array_t *headers, ngx_str_t *value, ngx_array_t *proxies,
     int recursive)
 {
@@ -162,7 +162,7 @@ static int _ngx_http_get_forwarded_addr_first_non_private_ip(ngx_http_request_t 
     ngx_table_elt_t  **h;
 
     if (headers == NULL) {
-        return _ngx_http_get_forwarded_addr_first_non_private_ip_internal(r, addr, value->data,
+        return ngx_http_get_forwarded_addr_first_non_private_ip_internal(r, addr, value->data,
                                                     value->len, proxies,
                                                     recursive);
     }
@@ -175,7 +175,7 @@ static int _ngx_http_get_forwarded_addr_first_non_private_ip(ngx_http_request_t 
     found = 0;
 
     while (i-- > 0) {
-        rc = _ngx_http_get_forwarded_addr_first_non_private_ip_internal(r, addr, h[i]->value.data,
+        rc = ngx_http_get_forwarded_addr_first_non_private_ip_internal(r, addr, h[i]->value.data,
                                                   h[i]->value.len, proxies,
                                                   recursive);
 
@@ -199,7 +199,7 @@ static int _ngx_http_get_forwarded_addr_first_non_private_ip(ngx_http_request_t 
 }
 
 
-static int _ngx_http_get_forwarded_addr_first_non_private_ip_internal(ngx_http_request_t *r, ngx_addr_t *addr,
+static ngx_int_t ngx_http_get_forwarded_addr_first_non_private_ip_internal(ngx_http_request_t *r, ngx_addr_t *addr,
     u_char *xff, size_t xfflen, ngx_array_t *proxies, int recursive)
 {
     u_char      *p;
@@ -230,7 +230,7 @@ static int _ngx_http_get_forwarded_addr_first_non_private_ip_internal(ngx_http_r
     *addr = paddr;
 
     if (recursive && p > xff) {
-        rc = _ngx_http_get_forwarded_addr_first_non_private_ip_internal(r, addr, xff, p - 1 - xff,
+        rc = ngx_http_get_forwarded_addr_first_non_private_ip_internal(r, addr, xff, p - 1 - xff,
                                                   proxies, 1);
 
         if (rc == NGX_DECLINED) {
@@ -304,7 +304,7 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
             if (gcf->first_non_private_ip == 0) {
                 (void) ngx_http_get_forwarded_addr(r, &addr, xfwd, NULL, gcf->proxies, gcf->proxy_recursive);
             } else {
-                (void) _ngx_http_get_forwarded_addr_first_non_private_ip(r, &addr, xfwd, NULL, gcf->proxies, gcf->proxy_recursive);
+                (void) ngx_http_get_forwarded_addr_first_non_private_ip(r, &addr, xfwd, NULL, gcf->proxies, gcf->proxy_recursive);
             }
         }
     }
