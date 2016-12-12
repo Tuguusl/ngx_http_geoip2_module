@@ -9,8 +9,6 @@
 #include <ngx_core.h>
 #include <ngx_http.h>
 
-#include <ngx_inet.h>
-
 #include <maxminddb.h>
 
 
@@ -161,11 +159,11 @@ ngx_int_t ngx_http_get_forwarded_addr_first_non_private_ip(ngx_http_request_t *r
     ngx_uint_t         i, found;
     ngx_table_elt_t  **h;
 
-//    if (headers == NULL) {
-//        return ngx_http_get_forwarded_addr_first_non_private_ip_internal(r, addr, value->data,
-//                                                    value->len, proxies,
-//                                                    recursive);
-//    }
+    if (headers == NULL) {
+        return ngx_http_get_forwarded_addr_first_non_private_ip_internal(r, addr, value->data,
+                                                    value->len, proxies,
+                                                    recursive);
+    }
 
     i = headers->nelts;
     h = headers->elts;
@@ -175,11 +173,9 @@ ngx_int_t ngx_http_get_forwarded_addr_first_non_private_ip(ngx_http_request_t *r
     found = 0;
 
     while (i-- > 0) {
-//        rc = ngx_http_get_forwarded_addr_first_non_private_ip_internal(r, addr, h[i]->value.data,
-//                                                  h[i]->value.len, proxies,
-//                                                  recursive);
-
-        rc = NGX_DECLINED;
+        rc = ngx_http_get_forwarded_addr_first_non_private_ip_internal(r, addr, h[i]->value.data,
+                                                  h[i]->value.len, proxies,
+                                                  recursive);
 
         if (!recursive) {
             break;
@@ -201,50 +197,50 @@ ngx_int_t ngx_http_get_forwarded_addr_first_non_private_ip(ngx_http_request_t *r
 }
 
 
-//ngx_int_t ngx_http_get_forwarded_addr_first_non_private_ip_internal(ngx_http_request_t *r, ngx_addr_t *addr,
-//    u_char *xff, size_t xfflen, ngx_array_t *proxies, int recursive)
-//{
-//    u_char      *p;
-//    ngx_int_t    rc;
-//    ngx_addr_t   paddr;
-//
+static ngx_int_t ngx_http_get_forwarded_addr_first_non_private_ip_internal(ngx_http_request_t *r, ngx_addr_t *addr,
+    u_char *xff, size_t xfflen, ngx_array_t *proxies, int recursive)
+{
+    u_char      *p;
+    ngx_int_t    rc;
+    ngx_addr_t   paddr;
+
 //    if (ngx_cidr_match(addr->sockaddr, proxies) != NGX_OK) {
 //        return NGX_DECLINED;
 //    }
-//
-//    for (p = xff + xfflen - 1; p > xff; p--, xfflen--) {
-//        if (*p != ' ' && *p != ',') {
-//            break;
-//        }
-//    }
-//
-//    for ( /* void */ ; p > xff; p--) {
-//        if (*p == ' ' || *p == ',') {
-//            p++;
-//            break;
-//        }
-//    }
-//
+
+    for (p = xff + xfflen - 1; p > xff; p--, xfflen--) {
+        if (*p != ' ' && *p != ',') {
+            break;
+        }
+    }
+
+    for ( /* void */ ; p > xff; p--) {
+        if (*p == ' ' || *p == ',') {
+            p++;
+            break;
+        }
+    }
+
 //    if (ngx_parse_addr_port(r->pool, &paddr, p, xfflen - (p - xff)) != NGX_OK) {
 //        return NGX_DECLINED;
 //    }
-//
-//    *addr = paddr;
-//
-//    if (recursive && p > xff) {
-//        rc = ngx_http_get_forwarded_addr_first_non_private_ip_internal(r, addr, xff, p - 1 - xff,
-//                                                  proxies, 1);
-//
-//        if (rc == NGX_DECLINED) {
-//            return NGX_DONE;
-//        }
-//
-//        /* rc == NGX_OK || rc == NGX_DONE  */
-//        return rc;
-//    }
-//
-//    return NGX_OK;
-//}
+
+    *addr = paddr;
+
+    if (recursive && p > xff) {
+        rc = ngx_http_get_forwarded_addr_first_non_private_ip_internal(r, addr, xff, p - 1 - xff,
+                                                  proxies, 1);
+
+        if (rc == NGX_DECLINED) {
+            return NGX_DONE;
+        }
+
+        /* rc == NGX_OK || rc == NGX_DONE  */
+        return rc;
+    }
+
+    return NGX_OK;
+}
 
 //char *_get_ip_from_xff(ngx_http_request_t *r, const char *xffheader)
 //{
