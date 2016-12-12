@@ -37,7 +37,7 @@ typedef struct {
 } ngx_http_geoip2_ctx_t;
 
 
-static ngx_int_t ngx_http_geoip2_variable(ngx_http_request_t *r,
+static ngx_int_t ngx_http_geoip2_variable(ngx_conf_t *cf, ngx_http_request_t *r,
     ngx_http_variable_value_t *v, uintptr_t data);
 static void *ngx_http_geoip2_create_conf(ngx_conf_t *cf);
 static char *ngx_http_geoip2_init_conf(ngx_conf_t *cf, void *conf);
@@ -173,7 +173,7 @@ static int _is_private(uint32_t ipnum)
 //}
 
 static ngx_int_t
-ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
+ngx_http_geoip2_variable(ngx_conf_t *cf, ngx_http_request_t *r, ngx_http_variable_value_t *v,
     uintptr_t data)
 {
     ngx_http_geoip2_ctx_t   *geoip2 = (ngx_http_geoip2_ctx_t *) data;
@@ -209,6 +209,9 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
 
         xfwd = &r->headers_in.x_forwarded_for;
         if (xfwd->nelts > 0 && gcf->first_non_private_ip) {
+
+            ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "first_non_private_ip active");
+
             ngx_uint_t          i;
             ngx_table_elt_t     **h;
 
