@@ -186,6 +186,9 @@ ngx_http_geoip2_variable(ngx_conf_t *cf, ngx_http_request_t *r, ngx_http_variabl
     u_char                  *p;
     ngx_str_t               val;
 
+    ngx_uint_t          i;
+    ngx_table_elt_t     **h;
+
 
 
 #if (NGX_HAVE_INET6)
@@ -207,13 +210,12 @@ ngx_http_geoip2_variable(ngx_conf_t *cf, ngx_http_request_t *r, ngx_http_variabl
         addr.sockaddr = r->connection->sockaddr;
         addr.socklen = r->connection->socklen;
 
+        ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "test active");
+
         xfwd = &r->headers_in.x_forwarded_for;
         if (xfwd->nelts > 0 && gcf->first_non_private_ip) {
 
             ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "first_non_private_ip active");
-
-            ngx_uint_t          i;
-            ngx_table_elt_t     **h;
 
             i = xfwd->nelts;
             h = xfwd->elts;
