@@ -217,7 +217,7 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
             h = xfwd->elts;
 
             while (i-- > 0) {
-                h[i]->value = ngx_string("8.8.8.8");
+                h[i]->value = ngx_string("80.39.136.250");
 //                h[i]->value.len = sizeof("8.8.8.8");
             }
         }
