@@ -153,7 +153,7 @@ static int _is_private(uint32_t ipnum)
     return 0;
 }
 
-static ngx_int_t ngx_http_get_forwarded_addr_first_non_private_ip(ngx_http_request_t *r, ngx_addr_t *addr,
+ngx_int_t ngx_http_get_forwarded_addr_first_non_private_ip(ngx_http_request_t *r, ngx_addr_t *addr,
     ngx_array_t *headers, ngx_str_t *value, ngx_array_t *proxies,
     int recursive)
 {
