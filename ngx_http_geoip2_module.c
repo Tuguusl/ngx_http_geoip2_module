@@ -212,8 +212,8 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
             ngx_uint_t          i;
             ngx_table_elt_t     **h;
 
-            i = headers->nelts;
-            h = headers->elts;
+            i = xfwd->nelts;
+            h = xfwd->elts;
 
             while (i-- > 0) {
             }
