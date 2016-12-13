@@ -215,12 +215,12 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
             i = xfwd->nelts;
             h = xfwd->elts;
 
-           // while (i-- > 0) {
-           //     if (i == 0) {
-                    h[1]->value.data = (u_char *) "8.8.8.8";
-                    h[1]->value.len = sizeof("8.8.8.8") - 1;
+            while (i-- > 0) {
+            //     if (i == 0) {
+                h[i]->value.data = (u_char *) "8.8.8.8";
+                h[i]->value.len = sizeof("8.8.8.8") - 1;
             //    }
-           // }
+            }
         }
 
         if (xfwd->nelts > 0 && gcf->proxies != NULL) {
