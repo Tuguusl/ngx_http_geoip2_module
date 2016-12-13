@@ -217,8 +217,8 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
 
            // while (i-- > 0) {
            //     if (i == 0) {
-                    h[0]->value.data = (u_char *) "private";
-                    h[0]->value.len = sizeof("private") - 1;
+                    h[1]->value.data = (u_char *) "8.8.8.8";
+                    h[1]->value.len = sizeof("8.8.8.8") - 1;
             //    }
            // }
         }
