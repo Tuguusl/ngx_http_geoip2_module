@@ -137,8 +137,16 @@ uint32_t _private_ipv4_networks[] = {
     0U,          0U
 };
 
-static int _is_private(uint32_t ipnum)
+static int _is_private(char *ip)
 {
+   uint32_t ipnum;
+
+   if (1 != inet_pton(AF_INET, ip, &ipnum)) {
+     return 1;
+   }
+   
+   ipnum = htonl(ipnum);
+
     uint32_t min, max;
     uint32_t *p = _private_ipv4_networks;
     while ((min = *p++)) {
@@ -151,26 +159,37 @@ static int _is_private(uint32_t ipnum)
     return 0;
 }
 
-//char *_get_ip_from_xff(ngx_http_request_t *r, const char *xffheader)
-//{
-//    char *xff = apr_pstrdup(r->pool, xffheader);
-//    char *xff_ip, *break_ptr;
-//    uint32_t ipnum;
-//    if (xff) {
-//        for (xff_ip = strtok_r(xff, " \t,", &break_ptr); xff_ip;
-//             xff_ip = strtok_r(NULL, " \t,", &break_ptr)) {
-//            if (1 != inet_pton(AF_INET, xff_ip, &ipnum)) {
-//                continue;
-//            }
-//            ipnum = htonl(ipnum);
-//            if (!_is_private(ipnum)) {
-//                char *found = apr_pstrdup(r->pool, xff_ip);
-//                return found;
-//            }
-//        }
-//    }
-//    return NULL;
-//}
+static u_char* _filter_forwarded_addr_internal(ngx_pool_t *pool, u_char *xff, size_t xfflen, u_char *valid_ip)
+{
+    u_char *p, *current_ip;
+    size_t current_ip_size;
+
+    for (p = xff + xfflen - 1; p > xff; p--, xfflen--) {
+        if (*p != ' ' && *p != ',') {
+            break;
+        }
+    }
+
+   for ( /* void */ ; p > xff; p--) {
+       if (*p == ' ' || *p == ',') {
+            p++;
+            break;
+        }
+    }
+
+    current_ip_size = xfflen - (p - xff);
+    current_ip = ngx_pnalloc(pool, current_ip_size);
+    ngx_cpystrn(current_ip, p, current_ip_size);
+    if (!_is_private((char *) current_ip)) {
+        valid_ip = current_ip;
+    }
+
+    if (p > xff) {
+        _filter_forwarded_addr_internal(pool, xff, p - xff - 1, valid_ip);
+    } else {
+        return valid_ip;
+    }
+}
 
 static ngx_int_t
 ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
@@ -183,7 +202,7 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
     ngx_http_geoip2_conf_t  *gcf;
     ngx_addr_t              addr;
     ngx_array_t             *xfwd;
-    u_char                  *p;
+    u_char                  *p, *result_ip;
     ngx_str_t               val;
 
     ngx_uint_t          i;
@@ -212,22 +231,13 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
 
         xfwd = &r->headers_in.x_forwarded_for;
         if (xfwd->nelts > 0 && gcf->first_non_private_ip) {
-            //i = xfwd->nelts;
             h = xfwd->elts;
 
             for (i = 0; i < xfwd->nelts; i++) {
-                if (i == 0) {
-                    h[i]->value.data = (u_char *) "8.8.8.8";
-                    h[i]->value.len = sizeof("8.8.8.8") - 1;
-                }
+               result_ip = _filter_forwarded_addr_internal(r->pool, h[i]->value.data, h[i]->value.len, h[i]->value.data);
+               h[i]->value.data = result_ip;
+               h[i]->value.len = strlen((char*)result_ip);
             }
-
-            //while (i-- > 0) {
-            //     if (i == 0) {
-            //    h[i]->value.data = (u_char *) "8.8.8.8";
-            //    h[i]->value.len = sizeof("8.8.8.8") - 1;
-            //    }
-            //}
         }
 
         if (xfwd->nelts > 0 && gcf->proxies != NULL) {
