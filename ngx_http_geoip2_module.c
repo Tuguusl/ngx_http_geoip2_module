@@ -185,10 +185,10 @@ static u_char* _filter_private_ip_forwarded_addr(ngx_pool_t *pool, u_char *xff, 
     }
 
     if (p > xff) {
-        _filter_private_ip_forwarded_addr(pool, xff, p - xff - 1, valid_ip);
-    } else {
-        return valid_ip;
+        return _filter_private_ip_forwarded_addr(pool, xff, p - xff - 1, valid_ip);
     }
+    
+    return valid_ip;
 }
 
 static ngx_int_t ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data)
