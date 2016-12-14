@@ -185,7 +185,7 @@ static u_char* _filter_private_ip_forwarded_addr(ngx_pool_t *pool, u_char *xff, 
     }
 
     if (p > xff) {
-        _filter_forwarded_addr_internal(pool, xff, p - xff - 1, valid_ip);
+        _filter_private_ip_forwarded_addr(pool, xff, p - xff - 1, valid_ip);
     } else {
         return valid_ip;
     }
