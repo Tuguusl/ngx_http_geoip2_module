@@ -159,7 +159,7 @@ static int _is_private(char *ip)
     return 0;
 }
 
-static u_char* _filter_forwarded_addr_internal(ngx_pool_t *pool, u_char *xff, size_t xfflen, u_char *valid_ip)
+static u_char* _filter_private_ip_forwarded_addr(ngx_pool_t *pool, u_char *xff, size_t xfflen, u_char *valid_ip)
 {
     u_char *p, *current_ip;
     size_t current_ip_size;
@@ -191,9 +191,7 @@ static u_char* _filter_forwarded_addr_internal(ngx_pool_t *pool, u_char *xff, si
     }
 }
 
-static ngx_int_t
-ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
-    uintptr_t data)
+static ngx_int_t ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data)
 {
     ngx_http_geoip2_ctx_t   *geoip2 = (ngx_http_geoip2_ctx_t *) data;
     ngx_http_geoip2_db_t    *database = geoip2->database;
@@ -234,7 +232,7 @@ ngx_http_geoip2_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
             h = xfwd->elts;
 
             for (i = 0; i < xfwd->nelts; i++) {
-               result_ip = _filter_forwarded_addr_internal(r->pool, h[i]->value.data, h[i]->value.len, h[i]->value.data);
+               result_ip = _filter_private_ip_forwarded_addr(r->pool, h[i]->value.data, h[i]->value.len, (u_char *) "");
                h[i]->value.data = result_ip;
                h[i]->value.len = strlen((char*)result_ip);
             }
