@@ -177,7 +177,7 @@ static u_char* _filter_forwarded_addr_internal(ngx_pool_t *pool, u_char *xff, si
         }
     }
 
-    current_ip_size = xfflen - (p - xff);
+    current_ip_size = xfflen - (p - xff - 1);
     current_ip = ngx_pnalloc(pool, current_ip_size);
     ngx_cpystrn(current_ip, p, current_ip_size);
     if (!_is_private((char *) current_ip)) {
