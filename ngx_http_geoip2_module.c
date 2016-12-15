@@ -142,7 +142,7 @@ static int _is_private(char *ip)
    uint32_t ipnum;
 
    if (1 != inet_pton(AF_INET, ip, &ipnum)) {
-     return 1;
+     return 0;
    }
    
    ipnum = htonl(ipnum);
