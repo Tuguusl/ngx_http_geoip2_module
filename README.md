@@ -98,3 +98,23 @@ $ mmdblookup --file /usr/share/GeoIP/GeoIP2-Country.mmdb --ip 8.8.8.8 country na
 
   "United States" <utf8_string>
 ```
+
+## First non private ip (Developed by Treexor)
+New option **geoip2_first_non_private_ip** for ignore private IPs in **x-forwarded-for** header. The current implementation filter the **x-forwarded-for** header and return only the first non private ip.
+
+## Example Usage:
+```
+load_module "modules/ngx_http_geoip2_module.so"; #;
+...
+http {
+    ...
+    geoip2 /usr/share/GeoIP/GeoIP2-Country.mmdb {
+        $geoip2_data_country_iso_code country iso_code;
+    }
+    
+    geoip2_proxy 0.0.0.0/0;
+    geoip2_proxy_recursive on;
+    geoip2_first_non_private_ip on;
+    ...
+}
+```
